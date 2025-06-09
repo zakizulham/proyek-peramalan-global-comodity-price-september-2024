@@ -16,7 +16,8 @@ Deskripsi Proyek belum di tentukan
 ```
 .
 ├── data/
-│   └── Global-Comodity-Price/
+│   ├── Global-Comodity-Price/
+│   └ 
 ├── notebooks/
 │   └── analisis_crudeOil.ipynb
 ├── output/
