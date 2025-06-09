@@ -1,8 +1,6 @@
----
+## 
 
-apa itu granularitas?
-
----
+## apa itu granularitas?
 
 ### Granularitas dalam Data dan Time Series
 
@@ -50,3 +48,5 @@ Secara singkat, **granularitas** adalah ukuran seberapa sering data Anda diukur 
 
 - Semakin **tinggi granularitas**, semakin banyak **detail** yang Anda miliki, tetapi juga semakin besar **volume data** dan potensi **noise**.
 - Semakin **rendah granularitas**, semakin **ringkas** data, tetapi Anda mungkin kehilangan **detail penting** atau **pola jangka pendek**.
+
+
