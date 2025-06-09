@@ -1,6 +1,6 @@
 # Judul Artikel belum ditentukan
 
-Repositori ini berisi kode dan data untuk proyek akhir mata kuliah Metode Peramalan, yang mengimplementasikan model ARIMA untuk menganalisis dan memprediksi *Global Comodity Price* pada makroekonomi.
+Repositori ini berisi kode dan data untuk proyek akhir mata kuliah Metode Peramalan, yang mengimplementasikan model ARIMA untuk menganalisis dan memprediksi *Global Comodity Price* pada bidang makroekonomi.
 
 ## Deskripsi Proyek
 
