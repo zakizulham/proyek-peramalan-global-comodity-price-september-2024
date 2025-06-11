@@ -8,6 +8,8 @@ Repositori ini berisi kode dan data untuk proyek akhir mata kuliah Metode Perama
 
 **[Deskripsi](#Deskripsi)** | **[Struktur Repository](#Struktur)** | **[Reproduksi Hasil](#Reproduksi)** | **[Ringkasan Proyek](#Ringkasan)** | **[Lisensi](#Lisensi)** 
 
+lihat [laporan lengkap](https://github.com/zakizulham/proyek-peramalan-global-comodity-price-september-2024/blob/main/reports/proyek_akhir_metpar.pdf)
+
 ## Deskripsi Proyek <a id='Deskripsi'></a>
 
 Proyek ini bertujuan untuk membangun model peramalan deret waktu untuk memprediksi volatilitas harga minyak mentah WTI, salah satu komoditas paling strategis dalam perekonomian global. Harga minyak mentah dikenal sangat fluktuatif akibat pengaruh faktor geopolitik, kebijakan OPEC, dan krisis ekonomi global. Mengingat karakteristik tersebut, data harga minyak mentah seringkali menunjukkan sifat non-stasioner dan heteroskedastisitas (varians yang tidak konstan).
