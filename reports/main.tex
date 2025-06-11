@@ -1,0 +1,556 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amssymb}
+\usepackage{geometry}
+\usepackage{graphicx, subcaption}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{comment}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage[style=apa,backend=biber]{biblatex}
+\addbibresource{references.bib}
+\geometry{margin=2.5cm}
+
+\title{
+\bf Pemodelan dan Peramalan Volatilitas Harga Minyak Mentah Menggunakan Model ARIMA dan GARCH \\
+\vspace{0.5em}
+\large Laporan Kelompok
+}
+\author{
+Muhammad Zaki Z \\[1ex] 
+\small Ilmu Aktuaria \\
+\small muhammad.zaki22@ui.ac.id
+\and
+Dwiki Febrian \\[1ex]
+\small Matematika \\
+\small dwiki.febrian@gmail.ui.ac.id
+\and
+Stephanie Febriana E \\[1ex]
+\small Ilmu Aktuaria \\
+\small stephaniefebriana@sci.ui.ac.id
+\and
+Muhammad Fasya Syaifullah\\[1ex]
+\small Matematika \\
+\small muhammad.fasya21@sci.ui.ac.id
+\and
+Patrick Darian \\[1ex]
+\small Matematika \\
+\small patrick.darian@sci.ui.ac.id
+}
+\date{June 11, 2025}
+
+\begin{document}
+\setlength{\parindent}{0 cm}
+
+\maketitle
+
+%=================================================================================================================
+\newpage
+\section{Pendahuluan}
+
+\subsection{Latar Belakang}
+Minyak mentah (\textit{crude oil}) merupakan salah satu komoditas strategis yang memegang peranan penting dalam perekonomian global. Menurut \parencite{baumeister2016forty}, fluktuasi harga minyak mentah sangat dipengaruhi oleh berbagai faktor geopolitik seperti konflik di wilayah produsen utama di Timur Tengah, kebijakan organisasi produsen seperti OPEC (Organization of the Petroleum Exporter Country), serta ketegangan internasional yang memengaruhi pasokan dan permintaan global. Imbuhnya, krisis ekonomi, pandemi global, dan disrupsi rantai pasok juga turut memperburuk volatilitas harga minyak dunia. \\
+
+Menghadapi kompleksitas tersebut, model berbasis deret waktu (\textit{time series}) menjadi pendekatan yang umum digunakan dalam memprediksi harga komoditas. Metode ini memungkinkan peneliti untuk mempelajari pola historis dan dinamika temporal suatu variabel tanpa bergantung pada variabel eksternal \parencite{hyndman2018forecasting}. Model \textit{time series} seperti ARIMA (\textit{Autoregressive Integrated Moving Average}) terbukti efektif dalam menangkap pola jangka pendek maupun jangka panjang dalam data ekonomi dan finansial \parencite{box2015time}. \\
+
+Model ARIMA bekerja dengan menggabungkan komponen autoregresif (AR), integrasi (I), dan moving average (MA), sehingga mampu membentuk model yang fleksibel dalam mengatasi data \textit{non-stasioner}. Untuk menangani pola musiman, ARIMA dapat diperluas menjadi SARIMA (Seasonal ARIMA) yang mengakomodasi fluktuasi berkala dalam data \parencite{makridakis2018statistical}. SARIMA bekerja dengan menambahkan komponen musiman pada model ARIMA standar, sehingga cocok diterapkan pada data dengan siklus atau pola musiman yang berulang, seperti harga komoditas pertanian yang sering dipengaruhi oleh musim tanam dan panen. \\
+
+Namun demikian, model ARIMA dan SARIMA hanya berfokus pada peramalan nilai rata-rata (mean) dan mengasumsikan varians data konstan (homoskedastis). Dalam praktiknya, terutama pada data harga komoditas yang rentan terhadap fluktuasi tinggi, asumsi ini kerap tidak terpenuhi. Untuk itu, digunakan pendekatan tambahan seperti GARCH (\textit{Generalized Autoregressive Conditional Heteroskedasticity}) yang dirancang khusus untuk memodelkan volatilitas atau perubahan varians secara dinamis. Model GARCH mampu menangkap fenomena heteroskedastisitas dan clustering volatilitas, yang sering ditemukan pada data keuangan dan komoditas \parencite{engle1982autoregressive}. \\
+
+Pendekatan awal dengan ARIMA dan perluasannya melalui SARIMA maupun integrasinya dengan model GARCH menjadi langkah penting untuk memahami struktur internal data secara menyeluruh sebelum melibatkan variabel eksternal seperti Google Trends atau indikator ekonomi lainnya. Model dasar ini juga berfungsi sebagai \textit{benchmark} sebelum menerapkan pendekatan machine learning yang lebih kompleks.
+
+\subsection{Rumusan Masalah}
+\begin{enumerate}
+    \item Bagaimana membangun model prediktif deret waktu univariat yang sederhana untuk memprediksi harga komoditas Crude Oil?
+
+    \item Bagaimana karakteristik musiman dan tren dari data harga Crude Oil historis dapat dimodelkan secara efektif?
+\end{enumerate}
+
+\subsection{Tujuan}
+\begin{enumerate}
+    \item Menerapkan model \textit{forecasting time series} untuk memodelkan dan memprediksi harga Crude Oil berdasarkan data historis univariat.
+
+    \item Menganalisis struktur musiman, tren, dan stasionaritas dalam data harga Crude Oil.
+\end{enumerate}
+
+%=================================================================================================================
+\section{Landasan Teori}
+
+\subsection{Model ARIMA}
+
+Pada tahun 1970, Box dan Jenkins mengenalkan model \textbf{\textit{Integrated Autoregressive Moving Average}} atau ARIMA. Suatu runtun waktu $\{Y_t\}$ dikatakan mengikuti sebuah model ARIMA jika diferensiasi ke-$d$ dari $W_t = \nabla ^dY_t$ merupakan suatu proses stasioner ARMA. Jika $\{W_t\}$ mengikuti model ARMA($p, q$), kita katakan $\{Y_t\}$ adalah sebuah proses ARIMA($p,d,q$) di mana umumnya $d$ mengambil nilai 1 atau 2. Sebagai contoh, model ARIMA($p, 1, q$) memiliki bentuk umum:
+\begin{equation}
+\label{eq:arima}
+W_t = \phi_1W_{t-1} + \phi_2W_{t-2} + \ldots + W_{t-p} + e_t + \theta_1e_{t-1}-\theta_2e_{t-2} - \ldots - \theta_qe_{t-q}\\
+\end{equation}
+dengan $W_t = Y_t - Y_{t-1}$
+
+Sebelum membangun model ARIMA, data deret waktu harus bersifat stasioner, yaitu memiliki rata-rata, varians, dan kovarian yang konstan sepanjang waktu setelah melakukan \textit{differencing}. \textit{Differencing} adalah mengurangi setiap nilai dengan nilai sebelumnya. Proses ini diulang sampai data menjadi stasioner dengan jumlah pengulangan menentukan nilai $d$ dalam model ARIMA. Untuk menguji stasioneritas digunakan uji statistik Augmented Dickey-Fuller (ADF). Jika hasil uji ADF menunjukkan nilai \textit{p-value} lebih dari 0.05, maka data dianggap tidak stasioner pada taraf 5$\%$.
+
+\subsection{Model GARCH}
+
+Meskipun tuntun waktu konvensional dan model ekonometri beroperasi di bawah sebuah asumsi variansi konstan, proses ARCH yang dikenalkan oleh Engle (1982) memberikan varians bersyarat untuk berubah seiring waktu fungsi dari error masa lalu yang meninggalkan varians tanpa syarat yang konstan. 
+
+Lalu, Bollerslev (1986) mengajukan perumuman model ARCH yaitu model GARCH yang memodelkan variansi pada waktu ke-$t$ sebagai suatu fungsi dari residual kuadrat lag dan varians kondisional dari waktu sebelum $t$. Bentuk umum GARCH($m, s$) yaitu
+\begin{equation}
+    \label{eq:garch}
+    \sigma^2_t = \omega + \sum^m_{i=1} \alpha_ia^2_{t-i} + \sum^s_{t-j}\beta_j\sigma^2_{t-j}
+\end{equation} di mana \begin{itemize}
+    \item $a_t = \sigma_t\epsilon_t$
+    \item $\epsilon_t \sim$ i.i.d. (0,1) adalah proses white noise
+    \item $\omega>0, \alpha_i\geq 0$ (setidaknya satu $\alpha_i >0$), $\beta_j \geq 0$
+    \item $\sum ^{max(m, s)}_{i=1}(\alpha_i + \beta_i )<1$, di mana $\alpha_i = 0$ untuk $i>m$ dan $\beta_i = 0$ untuk $j>s$.
+\end{itemize}
+
+
+%=================================================================================================================
+\section{Dataset dan Metodologi}
+
+\subsection{Dataset: \textit{Crude Oil WTI Futures Historical Data}}
+Data yang digunakan dalam penelitian ini adalah \textit{Crude Oil WTI Futures Historical Data}, yang diperoleh dari situs \textit{investing.com}. Dataset ini mencatat harga harian kontrak berjangka minyak mentah jenis West Texas Intermediate (WTI), yang merupakan salah satu tolak ukur utama harga minyak dunia.
+
+Dataset mencakup informasi historis harian dalam periode tertentu, terdiri atas beberapa variabel penting, yaitu:
+
+\begin{tabular}{l l}
+    \centering
+    Date & : Tanggal pencatatan data \\
+    Price & : Harga penutupan (\textit{closing price}) WTI pada hari tersebut \\
+    Open & : Harga pembukaan\\
+    High & : Harga tertinggi dalam satu hari perdagangan \\
+    Low & : Harga terendah dalam satu hari perdagangan \\
+    Vol. & : Volume transaksi yang terjadi (dalam kontrak atau lot)\\
+    Change \% & : Presentase perubahan harga dibandingkan hari sebelumnya.\\
+    &
+\end{tabular}
+
+Dalam penelitian ini, data difokuskan pada kolom \textit{Price} karena merepresentasikan harga penutupan yang umum digunakan dalam analisis \textit{time series} dan pemodelan finansial. Data kemudian dibersihkan, dibalik urutannya agar kronologis (dari lama ke baru), dan diubah ke format numerik agar dapat dianalisis lebih lanjut. \\
+
+Sebagai langkah awal, dilakukan eksplorasi statistik dan visualisasi data untuk memahami distribusi, tren jangka panjang, serta potensi adanya komponen musiman dan volatilitas yang signifikan. Informasi ini menjadi dasar dalam pemilihan model time series seperti ARIMA dan GARCH yang mampu menangkap dinamika harga secara akurat. \\
+
+Untuk melakukan \textit{fitting} model, dilakukan pemisahan data \textit{training} dan \textit{testing} menggunakan metode \textit{Fixed Split} yaitu memilih titik potong tunggal dalam deret waktu di mana data sebelum perpotongan adalah data latih dan data setelah perpotongan adalah data uji. Alasan penggunaan metode ini adalah karena metode ini sederhana dan sering digunakan.
+
+\subsection{Analisis Eksplorasi Data}
+
+Melakukan Analisis eskplorasi data pada data ini, dilakukan dua hal yaitu melihat bagaimana tren dari runtun waktu dan melihat bagaimana stasioneritas dari data tersebut.
+
+\begin{figure}[hbt!]
+    \centering
+    \includegraphics[width=0.8\linewidth]{gambar/runtun_waktu_oil.png}
+    \caption{Plot Runtun Waktu \textit{Crude Oil}}
+    \label{fig:minyak gan}
+\end{figure}
+
+Dari data diketahui bahwa runtun waktu dimulai pada tanggal 1 Oktober 2022 lalu berakhir pada tanggal 30 September 2024. Berdasarkan pola sekilas gambar \ref{fig:minyak gan}, dapat diasumsikan di awal bahwa runtun waktu tidak stasioner. Plot runtun waktu dibuat batas-batas seperti pada gambar \ref{fig:sectioned} dengan tujuan untuk membuat tren dari runtun waktu tersebut.
+
+\begin{figure}[hbt!]
+    \centering
+    \includegraphics[width=0.9\linewidth]{gambar/sectioned_oil.png}
+    \caption{Plot Runtun Waktu dengan Batas}
+    \label{fig:sectioned}
+\end{figure}
+
+Batasan pada plot tersebut ada pada tanggal 1 Oktober 2022, 1 Juli 2023, 1 Desember 2023, dan 30 September 2024. Setelah membuat batasan tersebut diaplikasikan model regresi dengan partisi batas-batas waktu tersebut untuk mencari garis yang merepresentasikan kemiringan dari partisi waktu.
+
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=0.8\linewidth]{gambar/partition1.png}
+    \caption{Tren partisi pertama}
+    \label{fig:partisi1}
+\end{figure}
+
+Dilihat pada gambar \ref{fig:partisi1} masih belum terlihat pola tren yang jelas. Ini karena pada plot, garis pertama dan keempat masih kecenderungan horizontal. Oleh karena itu dibuat lagi batasan baru yaitu 9 Juni 2022, 1 Juli 2023, 1 Desember 2023, dan 30 September 2024. 
+
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=0.8\linewidth]{gambar/partition2.png}
+    \caption{Tren partisi kedua}
+    \label{fig:partisi2}
+\end{figure}
+
+Pada gambar \ref{fig:partisi2} jelas terlihat tren untuk runtun waktu. Dari panjang garis, kemiringan, dan kecenderungan gelombang dapat dikatakan bahwa varians data tidak konstan. Pola tren yang berubah seiring berjalannya waktu mengindikasikan runtun waktu tersebut tidak stasioner. \\
+
+Keberadaan tren yang berubah seiring waktu menjadi salah satu karakteristik utama dari runtun waktu non-stasioner. Namun, seringkali data dengan tren ini juga menunjukkan varians yang tidak konstan. Dapat dilihat pada plot harga minyak mentah bahwa periode dengan harga tinggi (periode sebelum Juni 2023 dan Juli-Desember 2023) cenderung memiliki fluktuasi atau "lebar" data yang lebih besar dibandingkan periode dengan harga yang lebih rendah (periode Juni 2022 - Juli 2023 dan Januari 2024 - September 2024). Artinya ada periode dengan varians tinggi dan ada periode dengan varians rendah. \\
+
+Melihat gradien dari regresi untuk periode yang berbeda, setelah diamati terlihat bahwa kemiringan tren garis berubah secara signifikan. Tidak hanya menunjukkan perubahan tren, tetapi juga bisa mengindikasikan perubahan dalam "perilaku" runtun waktu. Perubahan perilaku ini seringkali mencakup perubahan dalam volatilitas atau variansi. Periode dengan gradien yang lebih curam atau dengan fluktuasi yang lebih besar di sekitar garis regresi mungkin memiliki variansi yang lebih tinggi.
+
+
+\subsection{Uji Stasioneritas}
+
+Metode plot untuk menentukan stasioneritas dan variansi konstan masih belum cukup untuk digunakan sebagai acuan. Untuk itu dilakukan uji stasioneritas ADF untuk mengetahui apakah data stasioner atau tidak. Uji ADF yaitu 
+\begin{align*}
+    H_0&: \text{ Runtun waktu memiliki unit root dan non-stasioner.}\\
+    H_1&: \text{ Runtun waktu tidak memiliki unit root dan stasioner.}
+\end{align*}
+
+Berikut adalah output dari uji stasioner pada data \textit{Crude-Oil}\\
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=0.6\linewidth]{gambar/adf1.PNG}
+    \caption{Output uji ADF pertama}
+    \label{fig:output adf 1}
+\end{figure}
+
+Karena nilai \textit{p-value} dari uji ADF lebih besar dari taraf signifikansi 0.05 maka $H_0 $ tidak ditolak. Karena $H_0$ tidak ditolak, masih kurang bukti untuk mengatakan bahwa asumsi stasioneritas data terpenuhi. Untuk menangani hal ini dilakukan diferensiasi pertama pada data lalu kembali dilakukan uji ADF. DIferensiasi yang dilakukan adalah pengurangan harga pada hari observasi $t$ dengan harga sehari sebelum observasi $t-1$.
+
+\begin{figure}[htb!]
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=1\linewidth]{gambar/differencing.png}
+        \caption{Plot nilai diferensiasi data}
+        \label{fig:differencing}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.9\linewidth]{gambar/adf2.PNG}
+        \caption{Output uji ADF kedua}
+        \label{fig:output_adf_2}
+    \end{subfigure}
+    \caption{Visualisasi hasil transformasi dan uji stasioneritas}
+    \label{fig:output adf 2}
+\end{figure}
+
+Dari grafik \ref{fig:differencing}, dapat dilihat bahwa rata-rata data sudah konstan, dengan variansi yang tidak konstan. Ini memberikan ide untuk pemodelan dengan ARIMA dan GARCH untuk variansi. Selanjutnya, akan dilakukan uji ADF terhadap deret waktu harga minyak mentah setelah diferensiasi sekali. Hasil uji didapat sebagai berikut:
+
+\begin{tabular}{l l}
+    \centering
+    Statistik ADF & : -12.2678 \\
+    \textit{p-value} & : $8.78 \times 10^{-23}$ \\
+    Nilai kritis & : -3.4395 ($1\%$)\\
+    High & : -3.4395 ($1\%$) \\
+    Low & : -3.4395 ($10\%$) \\
+    &
+\end{tabular}
+
+Karena nilai statistik ADF lebih kecil dari semua nilai kritis dan \textit{p-value} sangat kecil (jauh di bawah 0.05), maka hipotesis nol ditolak. Artinya, deret waktu setelah diferensiasi pertama sudah bersifat stasioner. 
+
+\subsection{Peramalan ARIMA}
+
+Setelah memperoleh deret waktu yang stasioner, orde $p$ (untuk komponen AR) dan $q$ (untuk komponen MA) dapat diperkirakan menggunakan plot ACF (Autocorrelation Function) dan PACF (Partial Autocorrelation Function): \\
+
+Penentuan orde $p$ pada model dapat dilakukan dengan memperhatikan plot PACF, yaitu melihat lag terakhir yang signifikan pada plot sebelum PACF \textit{cut off} (tidak ada lagi nilai siginifikan). Untuk menentukan orde $q$ pada model dapat dilakukan dengan memperhatikan plot ACF, yaitu melihat lag terakhir yang signifikan sebelum terjadi \textit{cut off}.
+
+Beberapa pola khas yang umum dijumpai antara ACF dan PACF meliputi:
+\begin{itemize}[label={\tiny\raisebox{1ex}{\textbullet}}]
+    \item ACF \textit{cut off} dan PACF \textit{tapering} menunjukkan model MA($q$).
+    \item PACF \textit{cut off} dan ACF \textit{tapering} menunjukkan model AR($p$).
+    \item Jika keduanya \textit{cut off}, maka cocok menggunakan model ARMA($p,q$).
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{acf price.png}
+    \caption{Plot ACF Price sebelum Dideferensiasi}
+    \label{fig:acf non diff}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{pacf price.png}
+    \caption{Plot PACF Price sebelum Dideferensiasi}
+    \label{fig:pacf}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{acf price setelah diferensiasi.png}
+    \caption{Plot ACF Price setelah Dideferensiasi}
+    \label{fig:acf}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{pacf price setelah differensiasi.png}
+    \caption{Plot PACF Price setelah didiferensiasi}
+    \label{fig:enter-label}
+\end{figure}
+
+Setelah meninjau hasil diferensiasi dan plot ACF serta PACF, model kandidat yang dipilih adalah ARIMA(1,1,1), dengan asumsi bahwa data memerlukan satu kali differencing ($d=1$), PACF mengindikasikan $p=1$, dan ACF mengindikasikan $q=1$.
+
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=0.8\linewidth]{gambar/arima(1,1,1).PNG}
+    \caption{Output model \textit{fitting} ARIMA(1,1,1)}
+    \label{fig:arima111}
+\end{figure}
+
+Pada gambar \ref{fig:arima111} dapat dilihat bahwa koefisien-koefisien pada model tidak signfikan secara statistik ditunjukkan oleh nilai \textit{p-value} masing-masing koefisien yang lebih dari 0.05. Walaupun begitu varians dari error model signifikan, ini menunjukkan bahwa model memang menangkap beberapa variasi dalam data. Lalu untuk \textit{Goodness of Fit} dapat dilihat pada informasi berikut.
+
+\begin{tabular}{l c l}
+    &&\\
+    \textbf{Metode} & \textbf{Nilai} & Informasi \\ \hline
+    Log Likelihood &  -1537.283 & Semakin tinggi (mendekati nol), semakin baik.\\
+    AIC &  3080.567 & Semakin kecil, semakin baik.\\
+    BIC &  3094.333 & Semakin kecil, semakin baik..\\
+    &&
+\end{tabular}
+
+Lalu juga ditinjau pada residual. \textit{Residual Autocorrelation} 0.57 > 0.05 menyatakan bahwa model berhasil menangkap korelasi dalam data. \textit{Residual Heteroskedasticity} 0.00<0.05 mengindikasikan ARIMA memiliki keterbatasan dalam menangani fluktuasi variabilitas yang menguatkan pertimbangan transformasi atau penggunaan ARCH/GARCH. \textit{Residual Normality} 0.00 < 0.05 menunjukkan asumsi normalitas residual tidak terpenuhi.
+
+Berdasarkan output model ARIMA(1,1,1), model masih belum cukup baik dan masih memiliki ruang untuk perbaikan. Untuk itu, data di-\textit{fit} lagi ke dalam model ARIMA denga parameter yang berbeda. Berikut adalah tabel ringkasannya.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Model} & \textbf{AR Coef} & \textbf{MA Coef} & \textbf{Signifikan} \\
+\midrule
+ARIMA(1,1,1) & AR(1): -0.5484 & MA(1): 0.5894 & Tidak \\
+\midrule
+ARIMA(1,1,2) & AR(1): 0.8096 & MA(2): -0.0751 & Ya \\
+\midrule
+ARIMA(2,1,1) & AR(1): -0.3458  & MA(1): 0.3657 & Tidak \\
+& AR(2): -0.0569 &  &\\
+\midrule
+ARIMA(2,1,2) & AR(1): 0.4253 & MA(1): -0.4161 & Tidak \\
+& AR(2): 0.3354 & MA(2): -0.4279 &\\
+\midrule
+ARIMA(0,1,1) & - & MA(1): 0.0196 & Tidak \\
+\bottomrule
+\end{tabular}
+\caption{Koefisien ARIMA dan Signifikansinya}
+\end{table}
+
+\vspace{0.5cm}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model} & \textbf{LogLik} & \textbf{AIC} & \textbf{BIC} & \textbf{HQIC} \\
+\midrule
+ARIMA(1,1,1) & -1537.283 & 3080.567 & 3094.333 & 3085.879 \\
+ARIMA(1,1,2) & -1533.379 & \textbf{3074.758} & \textbf{3093.113} & \textbf{3081.841} \\
+ARIMA(2,1,1) & -1536.371 & 3080.741 & 3099.097 & 3087.824 \\
+ARIMA(2,1,2) & -1532.981 & 3075.963 & 3098.908 & 3084.817 \\
+ARIMA(0,1,1) & -1538.038 & 3080.075 & 3089.253 & 3083.617 \\
+\bottomrule
+\end{tabular}
+\caption{Kriteria Pemilihan Model (Goodness of Fit)}
+\end{table}
+
+\vspace{0.5cm}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Model} & \textbf{Prob(Q)} & \textbf{Prob(JB)} & \textbf{Prob(H)} & \textbf{Skew} & \textbf{Kurtosis} \\
+\midrule
+ARIMA(1,1,1) & 0.57 & 0.00 & 0.00 & -1.16 & 12.00 \\
+ARIMA(1,1,2) & 0.98 & 0.00 & 0.00 & -1.06 & 11.19 \\
+ARIMA(2,1,1) & 1.00 & 0.00 & 0.00 & -1.16 & 11.95 \\
+ARIMA(2,1,2) & 1.00 & 0.00 & 0.00 & -1.07 & 11.31 \\
+ARIMA(0,1,1) & 0.97 & 0.00 & 0.00 & -1.13 & 11.76 \\
+\bottomrule
+\end{tabular}
+\caption{Diagnostik Residual (Normalitas, Heteroskedastisitas, Autokorelasi)}
+\end{table}
+
+Dari ringkasan tabel ringkasan model, dapat dilihat bahwa satu-satunya model yang memiliki koefisien yang semuanya signfikan adalah model ARIMA(1,1,2). Meninjau residual, hanya bagian \textit{Heteroskedasticity} yang menunjukkan masalah model yang terbatas dalam menangani fluktuasi variabilitas, hal ini menunjukkan saran transformasi atau ARCH/GARCH masih berlaku dan \textit{Normality} di mana residual tidak berdistribusi normal. \\
+
+Jika model AR atau MA saja dikecualikan, model ARIMA(1,1,2) memiliki nilai AIC-BIC terkecil. Meskipun model AR atau MA saja memiliki AIC-BIC yang lebih kecil, melihat signifikansi koefisien model tetap dipertimbangkan untuk menggunakan model ARIMA sebagai model terbaik sejauh ini.
+
+\subsection{Peramalan ARIMA dengan GARCH}
+
+\subsubsection{Transformasi Data}
+
+Pada bagian \textbf{Peramalan ARIMA} sebelumnya, dari model terbaik terdapat dua kendala yaitu residual yang tidak berdistribusi normal dan adanya heteroskedastisitas. Kedua kondisi ini dapat mempengaruhi validitas model dan akurasi peramalan. Untuk itu dilakukan transformasi data yang diharapkan dapat menstabilkan varians dan membuat distribusi data lebih mendekati normal, sehigga memenuhi asumsi model runtun waktu dengan lebih baik. \\
+
+Transformasi data yang digunakan adalah transformasi logaritma. Transformasi ini dipilih berdasarkan karakteristik data harga \textit{Crude-Oil} WTI yang menunjukkan volatilitas berkelompok. Transformasi digunakan untuk runtun waktu yang menunjukkan pertumbuhan eksponensial atau ketika varians meningkat seiring dengan nilai runtun waktu.
+
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=0.8\linewidth]{log_crude.png}
+    \caption{Plot Runtun Waktu Pasca Transformasi}
+    \label{fig:log-oil}
+\end{figure}
+Terlihat pada \ref{fig:log-oil} setelah data ditransformasi, fluktuasi dalam varians tampah lebih stabil dibandingkan dengan data asli. Setelah transformasi dilakukan langkah berikutnya adalah melakukan uji stasioneritas, berikut adalah hasil pengujian ADF.
+
+\begin{tabular}{l l}
+    &\\
+    Statistik ADF & -1.3757 \\
+    \textit{p-value} & 0.5938768194\\
+    &
+\end{tabular}\\
+Hasil tersebut menunjukkan bahwa uji ADF gagal menolak hipotesis no. Maka, runtun waktu tidak dapat dikatakan sebagai runtun waktu yang stasioner. Dilakukan \textit{differencing} pada data, lalu dilakukan uji ADF kembali didapatkan hasil.
+
+\begin{tabular}{l l}
+    &\\
+    Statistik ADF & -9.2771 \\
+    \textit{p-value} & 0.000000000\\
+    &
+\end{tabular}\\
+Setelah dilakukan \textit{differencing} data yang sudah ditransformasi sudah stasioner. Dengan ini dilakukan peramalan ARIMA dengan orde $d = 1$. Langkah berikutnya menentukan orde $p$ dan $q$ dari model, untuk itu dibuat plot ACF dan PACF.
+
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=0.9\linewidth]{acf_pacf log.PNG}
+    \caption{Plot ACF dan PACF}
+    \label{fig:acf pacf log}
+\end{figure}
+Sama seperti \textbf{Peramalan ARIMA} sebelumnya, estimasi nilai awal untul $p$ dan $q$ melihat pada plot ACF dan PACF ketika terjadi \textit{cut off}. Dari plot diambil orde $p = 1$ dan $q = 1$. Perlu diingat bahwa tetap ada titik $k$ yang signifikan pada plot ketik $k = 6, 42, 51, \ldots$ yang menandakan kemungkinan adanya komponen seasonal. Walaupun begitu, berdasarkan analisis plot, tidak ada pola berulang yang jelas pada kelipatan lag tertentu, maka dapat disimpulkan bahwa model meskipun dengan transoformasi model ARIMA tanpa komponen musiman sudah cukup memadai.
+
+\subsubsection{Pemodelan Volatilitas dengan ARCH/GARCH}
+
+Secara statistik, residual model ARIMA(1,1,2) terkonfirmasi memiliki varians yang tidak konstan (heteroskedastisitas). Ini berarti bahwa periode tertentu memiliki variansi yang berbeda dengan periode lainnya. Periode dengan volatilitas tinggi cenderung diikuti oleh periode volatilitas tinggi, dan periode volatilitas rendag diikuti oleh periode volatilitas rendah. Untuk itu akan digunakan model ARCH/GARCH untuk memodelkan volatilitas ini. Pada pemodelan ini hanya diterapkan model GARCH pada residual dari model dengan harapan agar model lebih mudah untuk digunakan. \\
+
+Untuk memodelkan volatilitas, hal pertama yang dilakukan adalah mengesktrak nilai-nilai residual dari model awal. Model yang digunakan untuk digunakan residualnya adalah model ARIMA(1,1,2). Sama seperti sebelumnya data yang digunakan adalah data uji hasil dari pemisahan data dengan Metode \textit{Fixed Split}. Residual pada model ARIMA(1,1,2) dari data latih akan digunakan untuk memodelkan GARCH. \\
+
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=0.8\linewidth]{gambar/arima(1,1,1) transform.PNG}
+    \caption{Output Model ARIMA untuk Log Data}
+    \label{fig:arima log}
+\end{figure}
+
+Model GARCH(1,1) digunakan dengan alasan bahwa model ini sudah umum dan seringkali memberikan hasil yang baik. Varians pada waktu ke$-t$ adalah suatu fungsi dari kuadrat residual dan varians ketika $t-1$ dengan asumsi bahwa mean pada residual sudah nol. 
+
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=0.8\linewidth]{gambar/garch xero.PNG}
+    \caption{Output Model GARCH(1,1)}
+    \label{fig:garch(1,1)}
+\end{figure}
+Berdasarkan hasil model Zero Mean-GARCH dengan distribusi normal, dapat diambil informasi terkait model. Secara keseluruhan model signifikan ditandai oleh nilai omege < 0.3092 . Lalu, alpha[1] sebagai pengaruh guncangan/error periode sebelumnya juga sangat signifikan ($P>|t| = 0.0002 < 0.05$) , koefisien 0.1685 menunjukkan guncangan masa lalu memengaruhi volatilitas terkini. Berikutnya beta[1] yaitu persistensi volatilitas juga sangat signifikan ($P>|t| \approx 0.0000 < 0.05$) dengan nilai koefisien 0.7573 mengindikasikan volatilitas bersifat \textit{persistent}. Total pengaruh volatilitas dilihat dari $alpha[1]+beta[1] = 0.9258 \rightarrow1$ volatilitas cenderung bertahan lama dan konsisten dengan karakteristik data.
+
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=0.8\linewidth]{gambar/plot residual garch.png}
+    \caption{Runtun (atas) dan Distribusi (bawah) Residual}
+    \label{fig:garchResid plot}
+\end{figure}
+Pada lampiran notebook 3, dilakukan uji Ljung-Box untuk memeriksa sisa efek ARCH autokorelasi pada volatilitas. Dari uji tersebut didapatkan bahwa pada lag rendah $k \in [1,6]$ tidak terdeteksi autokorelasi signifikan yang artinya model berhasil menangkap heteroskedastisitas jangka pendek. Namun pada lag menengah hingga tinggi $k \in [7, 20]$ terdapat autokorelasi tidak signifikan, mengindikasikan sisa efek ARCH yang tidak termodelkan terutama pada volatilitas jangka panjang. \\
+
+Selain volatilitas, diuji juga distribusi residual. Berdasarkan uji Jarque-Bera (pada lampiran) residual tidak berdsitribusi normal, menunjukkan karakteristik ekor gemuk yang umum pada data finansial.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Model} & \textbf{LogLik} & \textbf{AIC} & \textbf{BIC} & \textbf{omega} & \textbf{alpha} & \textbf{beta} \\
+\midrule
+GARCH(1,1) & -1424.95 & \textbf{2857.91} & \textbf{2876.27} & 20.05 & 1.0000 & $\sim 0$ \\
+GARCH(2,1) & -1424.51 & 2859.02 & 2881.97 & 15.57 & 0.7784, 0.1941 & 0.0275 \\
+GARCH(1,2) & -1424.75 & 2859.49 & 2882.45 & 19.62 & 0.9910 & $\sim 0$, 0.0089 \\
+GARCH(2,2) & -1424.75 & 2861.49 & 2889.04 & 19.64 & 0.9911, $\sim 0$ & $\sim 0$, 0.0089 \\
+\bottomrule
+\end{tabular}
+\caption{Ringkasan Estimasi GARCH($p,q$) dengan distribusi t (Student’s t)}
+\end{table}
+
+\vspace{0.5cm}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Model} & \textbf{$\nu$ (derajat bebas)} & \textbf{Ljung-Box (p $>$ 0.05)} & \textbf{JB (p-value)} \\
+\midrule
+GARCH(1,1) & 2.0910 & Ya (p = 0.878) & 0.0000 \\
+GARCH(2,1) & 2.1111 & Ya (p = 0.931) & 0.0000 \\
+GARCH(1,2) & 2.0917 & Ya (p = 0.877) & 0.0000 \\
+GARCH(2,2) & 2.0917 & Ya (p = 0.877) & 0.0000 \\
+\bottomrule
+\end{tabular}
+\caption{Distribusi dan Diagnostik Residual GARCH($p,q$)}
+\end{table}
+
+\vspace{0.5cm}
+
+Selain GARCH(1,1) dicoba juga model GARCH(1, 2), GARCH(2,1), dan GARCH(2,2). Informasi output masing-masing model dapat dilihat pada tabel 4 dan 5. Dari tabel tersebut model terbaik berdasarkan AIC-BIC tetap model GARCH(1,1). Untuk signifikansi parameter. Oleh karena itu dipilih GARCH(1,1) sebagai model terbaik untuk volatilitas.
+
+\subsubsection{ARIMA(1,1,2)-GARCH(1,1)}
+
+Setelah mengidentifikasi model ARIMA dan GARCH yang cocok, langkah berikutnya adalah menggabungkan kedua model menjadi satu model yang utuh. Dalam konteks model, ARIMA(1,1,2) akan bertindak sebagai model mean dan GARCH(1,1) bertindak sebagai model volatilitas. Untuk melakukan peramalan dengan model gabungan ini, dapat diprediksi nilai mean melalui ARIMA dan setelahnya diprediksi varians (standar deviasi) menggunakan model GARCH. \textit{Fit} pada model menggunakan data yang sama pada sebelumnya, untuk lebih lengkap pada langkah-langkah model dapat dilihat pada lampiran notebook 3. Untuk peramalan dibagi menjadi 3 cara yaitu pada harga langsung, dengan \textit{log returns}, dan simulasi Monte Carlo.
+
+%=================================================================================================================
+\section{Diskusi dan Hasil}
+
+Berdasarkan bagian \textbf{Peramalan ARIMA} dan \textbf{Peramalan ARIMA dengan GARCH} ada dua model yang dapat kita bandingkan yaitu model ARIMA(1,1,2) tanpa volatilitas dan ARIMA(1,1,2) dengan volatilitas GARCH(1,1). Untuk mengevaluasi model digunakan data uji sebanyak 274 observasi dari data \textit{Crude-Oil} dengan metrik evaluasi MAE, MSE, RMSE, dan, MAPE. Berikut adalah hasil evaluasi setiap model.
+
+\begin{enumerate}[label=(\alph*)]
+    \item Model ARIMA(1,1,2) tanpa Volatilitas.\\
+    \begin{table}[H]
+        \centering
+        \includegraphics[width=0.8\linewidth]{gambar/prediksi arima.png}
+        \begin{tabular}{l c}
+        \toprule
+        \textbf{Metrik} & \textbf{Nilai}  \\
+        \midrule
+        Mean Absolute Error & 5.4927  \\
+        Mean Square Error & 41.7104  \\
+        Root Mean Squared Error & 6.4584  \\
+        Mean Absolute Percentage Error & 6.9405\%  \\
+        \bottomrule
+        \end{tabular}
+    \end{table}
+    \vspace{0.3cm}
+    \item Model ARIMA(1,1,2) Volatilitas Langsung
+    \begin{table}[H]
+        \centering
+        \includegraphics[width=0.7\linewidth]{gambar/hargaLangsung.png}
+        \begin{tabular}{l c}
+        \toprule
+        \textbf{Metrik} & \textbf{Nilai}  \\
+        \midrule
+        Mean Absolute Error & 639.9058  \\
+        Mean Square Error & 693434.7657  \\
+        Root Mean Squared Error & 832.7273  \\
+        Mean Absolute Percentage Error & 850.3869\%  \\
+        \bottomrule
+        \end{tabular}
+    \end{table}
+    \vspace{0.3cm}
+    \item Model ARIMA(1,1,2) Volatilitas Log-Return
+    \begin{table}[H]
+        \centering
+        \includegraphics[width=0.7\linewidth]{gambar/logRetunr.png}
+        \begin{tabular}{l c}
+        \toprule
+        \textbf{Metrik} & \textbf{Nilai}  \\
+        \midrule
+        Mean Absolute Error & 18.7563  \\
+        Mean Square Error & 456.0797  \\
+        Root Mean Squared Error & 21.3560  \\
+        Mean Absolute Percentage Error & 24.2163\%  \\
+        \bottomrule
+        \end{tabular}
+    \end{table}
+    \vspace{0.3cm}
+    \item Model ARIMA(1,1,2) Volatilitas Log-Return Monte-Carlo
+    \begin{table}[H]
+        \centering
+        \includegraphics[width=0.7\linewidth]{gambar/MonteCarlo.png}
+        \begin{tabular}{l c}
+        \toprule
+        \textbf{Metrik} & \textbf{Nilai}  \\
+        \midrule
+        Mean Absolute Error & 4.8213  \\
+        Mean Square Error & 32.7794  \\
+        Root Mean Squared Error & 5.7253  \\
+        Mean Absolute Percentage Error & 6.1824\%  \\
+        \bottomrule
+        \end{tabular}
+    \end{table}
+\end{enumerate}
+
+
+
+
+%=================================================================================================================
+\section{Kesimpulan}
+
+Berdasarkan analisis yang telah dilakukan terhadap data harga minyak mentah WTI, penelitian ini menyimpulkan bahwa pendekatan pemodelan ARIMA-GARCH memberikan hasil yang efektif dalam menangkap volatilitas harga minyak. Kombinasi model ARIMA(1,1,2) untuk komponen rata-rata dan GARCH(1,1) untuk komponen volatilitas berhasil mengidentifikasi pola heteroskedastisitas dan \textit{clustering volatilitas} yang menjadi ciri khas data komoditas energi. Transformasi logaritmik terbukti meningkatkan stabilitas model dengan menstabilkan varians dan mendekatkan distribusi data ke kondisi normal, meskipun residual akhir masih menunjukkan sifat \textit{fat tails} yang umum ditemui pada data finansial. \\
+
+
+Dari berbagai metode peramalan yang diuji, pendekatan simulasi Monte Carlo pada model ARIMA-GARCH dengan \textit{log-return} menghasilkan prediksi terbaik, ditunjukkan oleh nilai MAPE sebesar 6,18\% yang lebih unggul dibandingkan model ARIMA standalone (MAPE 6,94\%) maupun prediksi langsung (MAPE 850,39\%). Temuan ini mengindikasikan bahwa simulasi stokastik dapat meningkatkan akurasi peramalan dalam konteks data yang sangat fluktuatif. Selain itu, analisis parameter GARCH(1,1) mengungkap sifat persistensi volatilitas yang kuat ($\alpha + \beta \approx 0,9258$), menunjukkan bahwa guncangan harga cenderung berdampak jangka panjang. \\
+
+Untuk pengembangan penelitian selanjutnya, dapat dipertimbangkan integrasi variabel eksternal seperti indikator makroekonomi atau sentimen pasar guna memperkaya model. Eksplorasi model yang lebih kompleks seperti EGARCH atau pendekatan machine learning seperti LSTM juga layak diuji untuk menangkap asimetri volatilitas dan pola nonlinier. Selain itu, penggunaan data dengan periode lebih panjang dapat memberikan pemahaman lebih komprehensif mengenai dinamika harga minyak dalam berbagai siklus ekonomi. Implementasi model ini dalam konteks manajemen risiko dan strategi lindung nilai komoditas juga dapat menjadi nilai tambah praktis dari penelitian lanjutan. Secara keseluruhan, penelitian ini telah memberikan kontribusi dalam demonstrasi aplikasi model time series klasik untuk peramalan komoditas volatil sekaligus menegaskan pentingnya transformasi data dan metode simulasi dalam meningkatkan akurasi prediksi.
+\newpage
+\printbibliography
+
+\end{document}
