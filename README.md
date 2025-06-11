@@ -102,15 +102,15 @@ Proyek ini dimulai dengan analisis eksplorasi data pada dataset Crude Oil WTI Fu
 
 1. Pemodelan ARIMA:
 
-- Uji Augmented Dickey-Fuller (ADF) mengonfirmasi data tidak stasioner. Setelah dilakukan diferensiasi pertama (d=1), data menjadi stasioner.
-- Berdasarkan analisis plot ACF dan PACF serta perbandingan kriteria AIC dan BIC, model ARIMA(1,1,2) terpilih sebagai model terbaik untuk memodelkan komponen rata-rata.
-- Meskipun model ini mampu menangkap korelasi data, diagnostik residual menunjukkan adanya heteroskedastisitas, yang mengindikasikan perlunya pemodelan volatilitas.
+    - Uji Augmented Dickey-Fuller (ADF) mengonfirmasi data tidak stasioner. Setelah dilakukan diferensiasi pertama (d=1), data menjadi stasioner.
+    - Berdasarkan analisis plot ACF dan PACF serta perbandingan kriteria AIC dan BIC, model ARIMA(1,1,2) terpilih sebagai model terbaik untuk memodelkan komponen rata-rata.
+    - Meskipun model ini mampu menangkap korelasi data, diagnostik residual menunjukkan adanya heteroskedastisitas, yang mengindikasikan perlunya pemodelan volatilitas.
 
 2. Pemodelan ARIMA-GARCH:
 
-- Untuk menstabilkan varians, transformasi logaritmik diterapkan pada data sebelum pemodelan.
-- Residual dari model ARIMA(1,1,2) pada data logaritmik dimodelkan menggunakan GARCH untuk menangkap volatilitas. Model GARCH(1,1) terpilih sebagai yang terbaik karena signifikansi parameter dan kriteria informasi yang paling optimal.
-- Parameter GARCH ( $ \alpha + \beta \approx 0.9258 $) menunjukkan bahwa volatilitas pada harga minyak mentah memiliki sifat persisten (bertahan lama).
+    - Untuk menstabilkan varians, transformasi logaritmik diterapkan pada data sebelum pemodelan.
+    - Residual dari model ARIMA(1,1,2) pada data logaritmik dimodelkan menggunakan GARCH untuk menangkap volatilitas. Model GARCH(1,1) terpilih sebagai yang terbaik karena signifikansi parameter dan kriteria informasi yang paling optimal.
+    - Parameter GARCH ( $ \alpha + \beta \approx 0.9258 $ ) menunjukkan bahwa volatilitas pada harga minyak mentah memiliki sifat persisten (bertahan lama).
 
 3. Hasil dan Evaluasi:
 Model gabungan **ARIMA(1,1,2)-GARCH(1,1)** dievaluasi performanya pada data uji. Beberapa metode peramalan diuji, dan hasilnya dibandingkan dengan model ARIMA standalone.
