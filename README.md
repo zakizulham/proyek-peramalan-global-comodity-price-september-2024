@@ -1,7 +1,8 @@
 # Pemodelan dan Peramalan Volatilitas Harga Minyak Mentah Menggunakan Model ARIMA dan GARCH
+
 [![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/release/python-3130/)
-[![On Progress](https://img.shields.io/badge/Status-On%20Progress-yellow.svg)](https://github.com/zakizulham/proyek-peramalan-global-comodity-price-september-2024/graphs/commit-activity)
-[![License: MIT](https://img.shields.io/badge/License-MIT-darkgreen.svg)](https://opensource.org/licenses/MIT)
+[![Status](https://img.shields.io/badge/Status-Finished-brightgreen.svg)](https://github.com/zakizulham/proyek-stokastik-churn-telekomunikasi/graphs/commit-activity)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Repositori ini berisi kode dan data untuk proyek akhir mata kuliah Metode Peramalan, yang mengimplementasikan model ARIMA dan GARCH untuk menganalisis dan memprediksi harga minyak mentah (Crude Oil) WTI.
 
