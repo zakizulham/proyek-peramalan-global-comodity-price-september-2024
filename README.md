@@ -24,21 +24,45 @@ Tujuan utama dari proyek ini adalah:
 ## Struktur Repository <a id='Struktur'></a>
 
 ```
-.
+proyek-peramalan-global-comodity-price-september-2024/
 ├── data/
-│   └── Crude Oil WTI Futures Historical Data.csv
+│   ├── Arkavidiaa/                     # Data mentah dari kompetisi
+│   │   ├── Global_Commodity_Price/
+│   │   ├── Google_Trend/
+│   │   │   ├── bawang/
+│   │   │   │   ├── Aceh.csv
+│   │   │   │   └── (... 32 file CSV lainnya per provinsi ...)
+│   │   │   ├── beras/
+│   │   │   │   └── (... data per provinsi ...)
+│   │   │   └── (... 12 folder komoditas lainnya ...)
+│   │   ├── Harga_Bahan_Pangan/
+│   │   └── Mata_Uang/
+│   └── Arkavidiaa_Processed/             # Data yang sudah dibersihkan dan diproses
+│       ├── Global_Commodity_Price/
+│       ├── Google_Trend/
+│       ├── Harga_Bahan_Pangan/
+│       └── Mata_Uang/
 ├── notebooks/
-│   ├── 1_Data_Exploration.ipynb
-│   ├── 2_ARIMA_Modelling.ipynb
-│   └── 3_ARIMA-GARCH_Modelling.ipynb
-├── output/
-│   ├── plots/      
-│   └── models/     
+│   ├── 0_data_wrangling.ipynb
+│   ├── 1_EDA.ipynb
+│   ├── 2_ARIMA_Model.ipynb
+│   ├── 3_Beyond_ARIMA_Model.ipynb
+│   └── 4_Machine_Learning.ipynb
+├── outputs/
+│   ├── models/
+│   │   └── arima_crude_oil_model.pkl
+│   └── plots/                          # (Folder untuk menyimpan gambar/plot)
+├── reports/
+│   ├── main.tex
+│   ├── proyek_akhir_metpar.pdf
+│   └── references.bib
 ├── .gitignore
 ├── LICENSE
 ├── README.md
-└── requirements.txt
+└── structure.md                      # Struktur direktori lengkap
 ```
+
+**Catatan**: Struktur di atas adalah versi ringkas. Untuk melihat daftar file yang lengkap dan detail, silakan merujuk ke file `structure.md`.
 
 ## Cara Reproduksi Hasil <a id='Reproduksi'></a>
 
